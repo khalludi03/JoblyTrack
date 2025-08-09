@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} at {{ job.company }} - JoblyTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">{{ job.title }}</h1>
+                <p class="text-xl text-gray-600 mb-2">{{ job.company }}</p>
+                {% if job.location %}
+                    <p class="text-gray-500">📍 {{ job.location }}</p>
+                {% endif %}
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'jobs:job_edit' job.pk %}" class="btn btn-secondary">Edit</a>
+                <a href="{% url 'jobs:job_delete' job.pk %}" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+
+        <!-- Status and Priority -->
+        <div class="flex items-center space-x-4 mb-6">
+            <span class="px-4 py-2 rounded-full text-sm font-medium
+                {% if job.status == 'wishlist' %}bg-gray-100 text-gray-800{% endif %}
+                {% if job.status == 'applied' %}bg-blue-100 text-blue-800{% endif %}
+                {% if job.status == 'interview' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if job.status == 'offer' %}bg-green-100 text-green-800{% endif %}
+                {% if job.status == 'rejected' %}bg-red-100 text-red-800{% endif %}">
+                {{ job.get_status_display }}
+            </span>
+            
+            <span class="px-4 py-2 rounded-full text-sm font-medium
+                {% if job.priority == 'low' %}bg-green-100 text-green-800{% endif %}
+                {% if job.priority == 'medium' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if job.priority == 'high' %}bg-red-100 text-red-800{% endif %}">
+                {{ job.get_priority_display }} Priority
+            </span>
+        </div>
+
+        <!-- Details -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {% if job.salary_min or job.salary_max %}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Salary Range</h3>
+                    <p class="text-gray-600">
+                        {% if job.salary_min and job.salary_max %}
+                            ${{ job.salary_min|floatformat:0 }} - ${{ job.salary_max|floatformat:0 }}
+                        {% elif job.salary_min %}
+                            From ${{ job.salary_min|floatformat:0 }}
+                        {% elif job.salary_max %}
+                            Up to ${{ job.salary_max|floatformat:0 }}
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if job.application_date %}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Application Date</h3>
+                    <p class="text-gray-600">{{ job.application_date }}</p>
+                </div>
+            {% endif %}
+
+            {% if job.deadline %}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Deadline</h3>
+                    <p class="text-gray-600">{{ job.deadline }}</p>
+                </div>
+            {% endif %}
+
+            {% if job.job_url %}
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Job Posting</h3>
+                    <a href="{{ job.job_url }}" target="_blank" class="text-blue-600 hover:text-blue-800">View Original Posting</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Description -->
+        {% if job.description %}
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Job Description</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-gray-700 whitespace-pre-line">{{ job.description }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Requirements -->
+        {% if job.requirements %}
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Requirements</h3>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-gray-700 whitespace-pre-line">{{ job.requirements }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if job.notes %}
+            <div class="mb-6">
+                <h3 class="font-semibold text-gray-900 mb-3">Notes</h3>
+                <div class="bg-yellow-50 rounded-lg p-4">
+                    <p class="text-gray-700 whitespace-pre-line">{{ job.notes }}</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Related Interviews -->
+        <div class="border-t pt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-gray-900">Interviews</h3>
+                <a href="{% url 'interviews:interview_add' %}?job={{ job.pk }}" class="btn btn-primary btn-sm">Schedule Interview</a>
+            </div>
+            
+            {% if job.interviews.exists %}
+                <div class="space-y-3">
+                    {% for interview in job.interviews.all %}
+                        <div class="bg-gray-50 rounded-lg p-4 flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">{{ interview.get_interview_type_display }}</p>
+                                <p class="text-sm text-gray-600">{{ interview.date }} at {{ interview.time }}</p>
+                                {% if interview.interviewer_name %}
+                                    <p class="text-sm text-gray-500">with {{ interview.interviewer_name }}</p>
+                                {% endif %}
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium
+                                {% if interview.status == 'scheduled' %}bg-blue-100 text-blue-800{% endif %}
+                                {% if interview.status == 'completed' %}bg-green-100 text-green-800{% endif %}
+                                {% if interview.status == 'cancelled' %}bg-red-100 text-red-800{% endif %}
+                                {% if interview.status == 'rescheduled' %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ interview.get_status_display }}
+                            </span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-500 text-center py-4">No interviews scheduled yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
